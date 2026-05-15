@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #d97706;
+  /* Amber 600 */
+  --color-secondary: #f43f5e;
+  /* Rose 500 */
+  --color-background-dark: #291c14;
+  /* Deep Chocolate Brown */
+  --color-background-light: #432c1a;
+  /* Lighter Brown */
+}
+
+@layer base {
+  body {
+    @apply bg-background-dark text-slate-100 antialiased font-sans transition-colors duration-300;
+  }
+}
+
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+  /* Dark mode variants handled usually with dark:bg-black/30 */
+}
+
+.glass-dark {
+  @apply bg-black/40 backdrop-blur-lg border border-white/10 shadow-2xl;
+}
