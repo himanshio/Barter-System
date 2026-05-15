@@ -19,18 +19,13 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://barter-system-12r8.vercel.app"
-];
-if (process.env.CLIENT_URL) {
-  allowedOrigins.push(...process.env.CLIENT_URL.split(",").map(url => url.trim()));
-}
-
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: [
+      "http://localhost:5173",
+      "https://barter-system-12r8.vercel.app"
+    ],
+    methods: ["GET", "POST"],
     credentials: true,
   },
 });
@@ -38,9 +33,12 @@ const io = new Server(httpServer, {
 // Middleware
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: [
+      "http://localhost:5173",
+      "https://barter-system-12r8.vercel.app"
+    ],
     credentials: true,
-  }),
+  })
 );
 
 app.use(express.json());
@@ -82,6 +80,7 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("setup", (userId) => {
+    socket.join(userId);
     socket.userId = userId;
 
     onlineUsers.set(userId, socket.id);
@@ -102,17 +101,7 @@ io.on("connection", (socket) => {
         createdAt: new Date(),
       });
 
-      const recipientSocketId = onlineUsers.get(message.recipientId);
-
-      if (recipientSocketId) {
-        io.to(recipientSocketId).emit("message received", message);
-      }
-
-      const senderSocketId = onlineUsers.get(message.sender);
-
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("message received", message);
-      }
+      socket.to(message.recipientId).emit("message received", message);
     } catch (error) {
       console.error("Error handling message:", error);
     }

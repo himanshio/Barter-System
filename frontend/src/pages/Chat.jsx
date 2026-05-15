@@ -23,7 +23,7 @@ import api from "../utils/axios.js";
 import { useSelector, useDispatch } from "react-redux";
 import { addNotification } from "../redux/notificationSlice";
 
-const ENDPOINT = "import.meta.env.VITE_API_URL";
+const ENDPOINT = import.meta.env.VITE_API_URL;
 
 const Chat = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -43,17 +43,17 @@ const Chat = () => {
   const socketRef = useRef(null);
   const activeContactRef = useRef(null);
   const messagesEndRef = useRef(null);
-  
+
   // Action Modals State
   const [activeModal, setActiveModal] = useState(null);
   const [offerType, setOfferType] = useState("barter");
   const [offerValue, setOfferValue] = useState("");
-  
+
   // Call Modal State
   const [showCallModal, setShowCallModal] = useState(false);
   const [callType, setCallType] = useState("whatsapp"); // 'whatsapp' or 'phone'
   const [callPhoneNumber, setCallPhoneNumber] = useState("");
-  
+
   const handleClearChat = () => {
     setActiveModal("clear");
     setShowDropdown(false);
@@ -199,56 +199,56 @@ const Chat = () => {
 
         // 1. Add all active conversations first (they are already sorted by time from backend)
         activeConvs.forEach(conv => {
-            const fullUser = allUsersMap.get(conv._id.toString());
-            if (fullUser) {
-                mergedConversations.push({
-                   _id: fullUser._id,
-                   name: fullUser.name,
-                   avatar: fullUser.avatar,
-                   lastMessage: conv.lastMessage,
-                   lastMessageTime: conv.lastMessageTime,
-                   unreadCount: conv.unreadCount || 0,
-                   newUnreadCount: 0,
-                   trustScore: fullUser.trustScore || 50,
-                   location: fullUser.location,
-                   skillsOffered: fullUser.skillsOffered || [],
-                   skillsWanted: fullUser.skillsWanted || [],
-                   isOnline: onlineUsers.has(fullUser._id.toString()),
-                   bio: fullUser.bio
-                });
-            } else {
-                mergedConversations.push({
-                   _id: conv._id,
-                   name: conv.name,
-                   avatar: conv.avatar,
-                   lastMessage: conv.lastMessage,
-                   lastMessageTime: conv.lastMessageTime,
-                   unreadCount: conv.unreadCount || 0,
-                   newUnreadCount: 0,
-                   isOnline: onlineUsers.has(conv._id.toString()),
-                });
-            }
+          const fullUser = allUsersMap.get(conv._id.toString());
+          if (fullUser) {
+            mergedConversations.push({
+              _id: fullUser._id,
+              name: fullUser.name,
+              avatar: fullUser.avatar,
+              lastMessage: conv.lastMessage,
+              lastMessageTime: conv.lastMessageTime,
+              unreadCount: conv.unreadCount || 0,
+              newUnreadCount: 0,
+              trustScore: fullUser.trustScore || 50,
+              location: fullUser.location,
+              skillsOffered: fullUser.skillsOffered || [],
+              skillsWanted: fullUser.skillsWanted || [],
+              isOnline: onlineUsers.has(fullUser._id.toString()),
+              bio: fullUser.bio
+            });
+          } else {
+            mergedConversations.push({
+              _id: conv._id,
+              name: conv.name,
+              avatar: conv.avatar,
+              lastMessage: conv.lastMessage,
+              lastMessageTime: conv.lastMessageTime,
+              unreadCount: conv.unreadCount || 0,
+              newUnreadCount: 0,
+              isOnline: onlineUsers.has(conv._id.toString()),
+            });
+          }
         });
 
         // 2. Add remaining connections
         connections.forEach(user => {
-            if (!activeConvsMap.has(user._id.toString())) {
-                mergedConversations.push({
-                   _id: user._id,
-                   name: user.name,
-                   avatar: user.avatar,
-                   lastMessage: "No messages yet...",
-                   lastMessageTime: null,
-                   unreadCount: 0,
-                   newUnreadCount: 0,
-                   trustScore: user.trustScore || 50,
-                   location: user.location,
-                   skillsOffered: user.skillsOffered || [],
-                   skillsWanted: user.skillsWanted || [],
-                   isOnline: onlineUsers.has(user._id.toString()),
-                   bio: user.bio
-                });
-            }
+          if (!activeConvsMap.has(user._id.toString())) {
+            mergedConversations.push({
+              _id: user._id,
+              name: user.name,
+              avatar: user.avatar,
+              lastMessage: "No messages yet...",
+              lastMessageTime: null,
+              unreadCount: 0,
+              newUnreadCount: 0,
+              trustScore: user.trustScore || 50,
+              location: user.location,
+              skillsOffered: user.skillsOffered || [],
+              skillsWanted: user.skillsWanted || [],
+              isOnline: onlineUsers.has(user._id.toString()),
+              bio: user.bio
+            });
+          }
         });
 
         setConversations(mergedConversations);
@@ -272,7 +272,7 @@ const Chat = () => {
   // Load messages from localStorage
   const loadMessages = (userId) => {
     const chatKey = `chat_${userId}`;
-    
+
     try {
       const storedMessages = JSON.parse(localStorage.getItem(chatKey) || "[]");
       // Filter out duplicates based on ID
@@ -285,7 +285,7 @@ const Chat = () => {
         }
       }
       setMessages(uniqueMessages);
-      
+
       // Update local storage with cleaned messages
       localStorage.setItem(chatKey, JSON.stringify(uniqueMessages));
     } catch (e) {
@@ -567,9 +567,10 @@ const Chat = () => {
   useEffect(() => {
     if (!userInfo?._id) return;
 
-    // Initialize socket only if not already connected
     if (!socketRef.current) {
       socketRef.current = io(ENDPOINT, {
+        transports: ["websocket", "polling"],
+        withCredentials: true,
         autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 5,
@@ -626,7 +627,7 @@ const Chat = () => {
       setConversations((convPrev) => {
         const newConvs = [...convPrev];
         const index = newConvs.findIndex(c => c._id === message.sender || c._id === message.recipientId);
-        
+
         if (index > -1) {
           const [conv] = newConvs.splice(index, 1);
           newConvs.unshift({
@@ -687,7 +688,7 @@ const Chat = () => {
         const msgExistsInStorage = existingMessages.some(
           (msg) => msg.id === message.id,
         );
-        
+
         if (!msgExistsInStorage) {
           existingMessages.push(message);
           localStorage.setItem(chatKey, JSON.stringify(existingMessages));
@@ -835,7 +836,7 @@ const Chat = () => {
     setConversations((prev) => {
       const newConvs = [...prev];
       const index = newConvs.findIndex(c => c._id === activeContact._id);
-      
+
       if (index > -1) {
         const [conv] = newConvs.splice(index, 1);
         newConvs.unshift({
@@ -870,11 +871,10 @@ const Chat = () => {
               <div
                 key={contact._id}
                 onClick={() => handleContactClick(contact)}
-                className={`p-4 flex gap-4 cursor-pointer hover:bg-white/5 transition-colors border-b border-white/5 ${
-                  activeContact?._id === contact._id
+                className={`p-4 flex gap-4 cursor-pointer hover:bg-white/5 transition-colors border-b border-white/5 ${activeContact?._id === contact._id
                     ? "bg-primary/10 border-l-4 border-l-primary"
                     : "border-l-4 border-l-transparent"
-                }`}
+                  }`}
               >
                 <div className="relative">
                   <img
@@ -885,19 +885,17 @@ const Chat = () => {
                     className="w-12 h-12 rounded-full object-cover shadow-lg"
                   />
                   <div
-                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1a1f2e] ${
-                      contact.isOnline ? "bg-emerald-500" : "bg-slate-500"
-                    }`}
+                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1a1f2e] ${contact.isOnline ? "bg-emerald-500" : "bg-slate-500"
+                      }`}
                   ></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-1">
                     <h4
-                      className={`font-bold truncate ${
-                        activeContact?._id === contact._id
+                      className={`font-bold truncate ${activeContact?._id === contact._id
                           ? "text-primary-light"
                           : ""
-                      }`}
+                        }`}
                     >
                       {contact.name}
                     </h4>
@@ -932,11 +930,10 @@ const Chat = () => {
               </h3>
               <p className="text-xs font-semibold tracking-wide flex items-center gap-1">
                 <Circle
-                  className={`w-2 h-2 shrink-0 fill-current ${
-                    activeContact?.isOnline
+                  className={`w-2 h-2 shrink-0 fill-current ${activeContact?.isOnline
                       ? "text-emerald-500"
                       : "text-slate-400"
-                  }`}
+                    }`}
                 />
                 <span
                   className={
@@ -1120,7 +1117,7 @@ const Chat = () => {
                       onClick={handleClearChat}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-sm transition-colors text-slate-200 font-medium whitespace-nowrap border-t border-white/5"
                     >
-                        <Trash2 className="w-4 h-4 text-orange-400" /> Clear Chat
+                      <Trash2 className="w-4 h-4 text-orange-400" /> Clear Chat
                     </button>
                     <button
                       onClick={() => {
@@ -1166,18 +1163,16 @@ const Chat = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={msg.id}
-                  className={`flex flex-col ${
-                    msg.sender === userInfo._id ? "items-end" : "items-start"
-                  }`}
+                  className={`flex flex-col ${msg.sender === userInfo._id ? "items-end" : "items-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-[70%] px-5 py-3 rounded-2xl shadow-xl ${
-                      msg.isCallMessage
+                    className={`max-w-[70%] px-5 py-3 rounded-2xl shadow-xl ${msg.isCallMessage
                         ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white"
                         : msg.sender === userInfo._id
                           ? "bg-gradient-to-r from-primary to-indigo-600 text-white rounded-br-sm"
                           : "bg-white/10 text-white border border-white/5 rounded-bl-sm backdrop-blur-md"
-                    }`}
+                      }`}
                   >
                     <div>
                       {msg.isOffer ? (
@@ -1221,7 +1216,7 @@ const Chat = () => {
                       ) : (
                         <p className="font-medium">{msg.text}</p>
                       )}
-                      
+
                       {msg.senderName && msg.sender !== userInfo._id && (
                         <p className="text-xs text-slate-400 mt-1">
                           {msg.senderName}
@@ -1437,21 +1432,19 @@ const Chat = () => {
                   <div className="flex gap-2 mb-6">
                     <button
                       onClick={() => setOfferType("barter")}
-                      className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all border ${
-                        offerType === "barter"
+                      className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all border ${offerType === "barter"
                           ? "bg-primary/20 border-primary text-primary-light"
                           : "bg-transparent border-white/10 text-slate-400 hover:bg-white/5"
-                      }`}
+                        }`}
                     >
                       Skill Barter
                     </button>
                     <button
                       onClick={() => setOfferType("credits")}
-                      className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all border ${
-                        offerType === "credits"
+                      className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all border ${offerType === "credits"
                           ? "bg-secondary/20 border-secondary text-secondary"
                           : "bg-transparent border-white/10 text-slate-400 hover:bg-white/5"
-                      }`}
+                        }`}
                     >
                       Credits
                     </button>
