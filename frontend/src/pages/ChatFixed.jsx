@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import api from "../utils/axios.js";
 import { useSelector } from "react-redux";
 
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://barter-system-2ml4.onrender.com";
 var socket;
 
 const Chat = () => {
