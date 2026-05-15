@@ -19,9 +19,13 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",")
-  : ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://barter-system-12r8.vercel.app"
+];
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(...process.env.CLIENT_URL.split(",").map(url => url.trim()));
+}
 
 const io = new Server(httpServer, {
   cors: {
